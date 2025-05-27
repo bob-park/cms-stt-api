@@ -32,6 +32,9 @@ spring:
     multipart:
       max-file-size: -1
       max-request-size: -1
+  batch:
+    jdbc:
+      initialize-schema: never # schema-postgresql.sql
   data:
     redis:
       repositories:
