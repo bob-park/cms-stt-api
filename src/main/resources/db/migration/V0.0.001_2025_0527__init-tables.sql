@@ -6,6 +6,7 @@ create table assets_stt_jobs
     status             varchar(20) default 'WAITING' not null,
     source_path        varchar(1000)                 not null,
     audio_path         varchar(1000),
+    is_deleted         bool        default false     not null,
     created_date       timestamp   default now()     not null,
     last_modified_date timestamp
 );
