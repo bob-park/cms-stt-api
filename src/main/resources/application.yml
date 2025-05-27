@@ -80,7 +80,7 @@ malgn:
       enabled: off
       host: ${auth-user-host:http://localhost:8080}
   redis:
-    enabled: off
+    enabled: on
     host: ${redis_host:redis://localhost:6379}
   notification:
     enabled: off
