@@ -1,5 +1,6 @@
 package com.malgn.domain.audio.service.v1;
 
+import java.io.IOException;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.malgn.domain.audio.feign.SpeakerDiarizeFeignClient;
 import com.malgn.domain.audio.model.AudioSpeakerDiarizationResponse;
+import com.malgn.domain.audio.model.CommonMultipartFile;
 import com.malgn.domain.audio.service.AudioSpeakerDiarizationService;
 
 @Slf4j
@@ -22,7 +24,7 @@ public class AudioSpeakerDiarizationServiceV1 implements AudioSpeakerDiarization
     private final SpeakerDiarizeFeignClient speakerDiarizeClient;
 
     @Override
-    public List<AudioSpeakerDiarizationResponse> diarize(MultipartFile audio) {
-        return speakerDiarizeClient.diarize(audio);
+    public List<AudioSpeakerDiarizationResponse> diarize(MultipartFile audio) throws IOException {
+        return speakerDiarizeClient.diarize(new CommonMultipartFile(audio.getBytes()));
     }
 }

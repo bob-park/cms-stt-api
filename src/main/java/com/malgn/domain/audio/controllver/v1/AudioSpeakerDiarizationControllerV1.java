@@ -1,5 +1,6 @@
 package com.malgn.domain.audio.controllver.v1;
 
+import java.io.IOException;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ public class AudioSpeakerDiarizationControllerV1 {
     private final AudioSpeakerDiarizationServiceV1 speakerDiarizationService;
 
     @PostMapping(path = "")
-    public List<AudioSpeakerDiarizationResponse> diarize(@RequestPart MultipartFile audio) {
+    public List<AudioSpeakerDiarizationResponse> diarize(@RequestPart MultipartFile audio) throws IOException {
         return speakerDiarizationService.diarize(audio);
     }
 
