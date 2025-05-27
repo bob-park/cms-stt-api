@@ -82,6 +82,10 @@ dependencies {
     annotationProcessor("com.querydsl:querydsl-apt:${queryDslVersion}:jakarta")
     testAnnotationProcessor("com.querydsl:querydsl-apt:${queryDslVersion}:jakarta")
 
+    // ffmpeg
+    implementation 'net.bramp.ffmpeg:ffmpeg:0.8.0'
+    implementation 'org.zeroturnaround:zt-exec:1.12'
+
 }
 
 dependencyManagement {

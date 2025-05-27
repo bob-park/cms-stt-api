@@ -5,6 +5,7 @@ create table assets_stt_jobs
     asset_id           bigint                        not null,
     status             varchar(20) default 'WAITING' not null,
     source_path        varchar(1000)                 not null,
+    audio_path         varchar(1000),
     created_date       timestamp   default now()     not null,
     last_modified_date timestamp
 );

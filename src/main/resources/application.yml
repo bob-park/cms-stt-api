@@ -100,6 +100,14 @@ malgn:
     enabled: off
     host: ${notification_host:http://localhost:8080}
 
+## app
+app:
+  base-location: ${base_location}
+
+## transcode
+transcode:
+  lib: ${lib_location:file:///usr/bin}
+
 ## logging
 logging:
   charset:
@@ -119,3 +127,4 @@ logging:
     root: info
     web: ${logs_level:info}
     com.malgn: ${logs_level:info}
+
