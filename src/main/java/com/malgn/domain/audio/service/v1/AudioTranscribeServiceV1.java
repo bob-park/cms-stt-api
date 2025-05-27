@@ -19,13 +19,13 @@ import groovy.util.logging.Slf4j;
 import com.malgn.domain.audio.model.AudioSpeechToTextRequest;
 import com.malgn.domain.audio.model.AudioSpeechToTextResponse;
 import com.malgn.domain.audio.model.v1.AudioSpeechToTextRequestV1;
-import com.malgn.domain.audio.service.AudioSpeechService;
+import com.malgn.domain.audio.service.AudioTranscribeService;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 @Transactional(readOnly = true)
-public class AudioTranscribeServiceV1 implements AudioSpeechService {
+public class AudioTranscribeServiceV1 implements AudioTranscribeService {
 
     private final OpenAiAudioTranscriptionModel transcriptionModel;
 
