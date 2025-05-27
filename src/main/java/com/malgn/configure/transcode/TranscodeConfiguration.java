@@ -15,6 +15,7 @@ import net.bramp.ffmpeg.FFmpeg;
 import net.bramp.ffmpeg.FFprobe;
 
 import com.malgn.configure.transcode.properties.TranscodeProperties;
+import com.malgn.domain.transcode.runner.extract.ExtractAudioRunner;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -25,9 +26,7 @@ public class TranscodeConfiguration {
     private static final String FFMPEG_LIB_NAME = "ffmpeg";
     private static final String FFPROBE_LIB_NAME = "ffprobe";
 
-
     private final TranscodeProperties properties;
-
 
     @Bean
     public FFmpeg ffmpeg() throws IOException {
@@ -50,5 +49,10 @@ public class TranscodeConfiguration {
         log.info("FFPROVE lib path: {}", absolutePath);
 
         return new FFprobe(absolutePath);
+    }
+
+    @Bean
+    public ExtractAudioRunner extractAudioRunner() throws IOException {
+        return new ExtractAudioRunner(ffmpeg());
     }
 }

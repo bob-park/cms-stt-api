@@ -37,7 +37,7 @@ public class ExtractAudioRunner implements TranscodeRunner {
     private static final long AUDIO_SAMPLE_RATE = 16_000;
 
     // extension
-    public static final String AUDIO_EXTENSION = ".wav";
+    public static final String AUDIO_EXTENSION = "wav";
 
     private final FFmpeg ffmpeg;
 

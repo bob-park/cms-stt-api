@@ -56,4 +56,12 @@ public class AssetSttJob extends BaseTimeEntity<Long> {
         this.audioPath = audioPath;
         this.isDeleted = defaultIfNull(isDeleted, false);
     }
+
+    public void updateStatus(TaskStatus status) {
+        this.status = status;
+    }
+
+    public void updateAudioPath(String audioPath) {
+        this.audioPath = audioPath;
+    }
 }
