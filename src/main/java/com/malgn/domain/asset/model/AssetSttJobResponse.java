@@ -13,8 +13,6 @@ public interface AssetSttJobResponse extends CommonResponse {
 
     String sourcePath();
 
-    String audioPath();
-
     Boolean isDeleted();
 
 }

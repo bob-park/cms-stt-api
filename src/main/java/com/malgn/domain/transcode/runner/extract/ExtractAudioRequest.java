@@ -6,6 +6,8 @@ import com.malgn.domain.transcode.runner.TranscodeRequest;
 
 @Builder
 public record ExtractAudioRequest(String source,
-                                  String dest)
+                                  String dest,
+                                  double startSeconds,
+                                  double duration)
     implements TranscodeRequest {
 }

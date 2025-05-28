@@ -22,6 +22,7 @@ import com.malgn.common.exception.ServiceRuntimeException;
 import com.malgn.domain.transcode.runner.TranscodeRequest;
 import com.malgn.domain.transcode.runner.TranscodeRunner;
 import com.malgn.domain.transcode.runner.TranscodeType;
+import com.malgn.time.TimeCode;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -59,11 +60,16 @@ public class ExtractAudioRunner implements TranscodeRunner {
             throw new ServiceRuntimeException(e);
         }
 
+        TimeCode startTimeCode = new TimeCode(extractRequest.startSeconds());
+        TimeCode durationTimeCode = new TimeCode(extractRequest.duration());
+
         FFmpegBuilder builder =
             new FFmpegBuilder()
                 .overrideOutputFiles(true)
+                .addExtraArgs("-ss", startTimeCode.toString())
                 .setInput(extractRequest.source())
                 .addOutput(request.dest())
+                .addExtraArgs("-t", durationTimeCode.toString())
                 .addExtraArgs("-c:a", AUDIO_CODEC)
                 .addExtraArgs("-ac", AUDIO_CHANNELS + "")
                 .addExtraArgs("-ar", AUDIO_SAMPLE_RATE + "")

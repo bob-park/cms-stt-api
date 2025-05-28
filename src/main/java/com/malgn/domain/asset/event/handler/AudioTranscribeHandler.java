@@ -21,11 +21,13 @@ import com.malgn.configure.properties.AppProperties;
 import com.malgn.cqrs.event.Event;
 import com.malgn.cqrs.event.handler.CommandHandler;
 import com.malgn.cqrs.outbox.publish.OutboxEventPublisher;
+import com.malgn.domain.asset.entity.AssetSttAudio;
+import com.malgn.domain.asset.entity.AssetSttAudioType;
 import com.malgn.domain.asset.entity.AssetSttJob;
 import com.malgn.domain.asset.entity.AssetSttText;
 import com.malgn.domain.asset.event.AssetSttJobEventType;
 import com.malgn.domain.asset.event.AudioTranscribeCompletedEventPayload;
-import com.malgn.domain.asset.event.ExtractAudioCompletedEventPayload;
+import com.malgn.domain.asset.event.SpeakerDiarizeCompleteEventPayload;
 import com.malgn.domain.asset.repository.AssetSttJobRepository;
 import com.malgn.domain.asset.repository.AssetSttTextRepository;
 import com.malgn.domain.audio.parser.SrtFormatParser;
@@ -34,7 +36,7 @@ import com.malgn.domain.audio.parser.TimeLineText;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class AudioTranscribeHandler implements CommandHandler<ExtractAudioCompletedEventPayload> {
+public class AudioTranscribeHandler implements CommandHandler<SpeakerDiarizeCompleteEventPayload> {
 
     private final AppProperties properties;
 
@@ -46,9 +48,9 @@ public class AudioTranscribeHandler implements CommandHandler<ExtractAudioComple
     private final AssetSttTextRepository assetSttTextRepository;
 
     @Override
-    public void handle(Event<ExtractAudioCompletedEventPayload> event) {
+    public void handle(Event<SpeakerDiarizeCompleteEventPayload> event) {
 
-        ExtractAudioCompletedEventPayload payload = event.getPayload();
+        SpeakerDiarizeCompleteEventPayload payload = event.getPayload();
 
         AssetSttJob assetSttJob =
             assetSttJobRepository.findById(payload.id())
@@ -61,50 +63,56 @@ public class AudioTranscribeHandler implements CommandHandler<ExtractAudioComple
             throw new ServiceRuntimeException(e);
         }
 
-        String absoluteAudioPath = dir + File.separatorChar + assetSttJob.getAudioPath();
+        List<AssetSttAudio> audios =
+            assetSttJob.getAudios().stream()
+                .filter(item -> item.getType() == AssetSttAudioType.SEGMENT)
+                .toList();
 
-        AudioTranscriptionPrompt prompt =
-            new AudioTranscriptionPrompt(
-                new FileSystemResource(absoluteAudioPath),
-                OpenAiAudioTranscriptionOptions.builder()
-                    .model("whisper-1")
-                    .language("ko")
-                    .responseFormat(TranscriptResponseFormat.SRT)
-                    .build());
+        for (AssetSttAudio audio : audios) {
+            String absoluteAudioPath = dir + File.separatorChar + audio.getAudioPath();
 
-        AudioTranscriptionResponse response = transcriptionModel.call(prompt);
-        String contents = response.getResult().getOutput();
+            AudioTranscriptionPrompt prompt =
+                new AudioTranscriptionPrompt(
+                    new FileSystemResource(absoluteAudioPath),
+                    OpenAiAudioTranscriptionOptions.builder()
+                        .model("whisper-1")
+                        .language("ko")
+                        .responseFormat(TranscriptResponseFormat.SRT)
+                        .build());
 
-        List<TimeLineText> texts = SrtFormatParser.parse(contents);
+            AudioTranscriptionResponse response = transcriptionModel.call(prompt);
+            String contents = response.getResult().getOutput();
 
-        for (TimeLineText text : texts) {
+            List<TimeLineText> texts = SrtFormatParser.parse(contents);
 
-            AssetSttText createdText =
-                AssetSttText.builder()
-                    .startTime(text.startTime().doubleValue())
-                    .endTime(text.endTime().doubleValue())
-                    .text(text.text())
-                    .build();
+            for (TimeLineText text : texts) {
 
-            assetSttJob.addText(createdText);
+                AssetSttText createdText =
+                    AssetSttText.builder()
+                        .startTime(text.startTime().add(audio.getStartTime()))
+                        .endTime(text.endTime().add(audio.getStartTime()))
+                        .text(text.text())
+                        .build();
 
-            createdText = assetSttTextRepository.save(createdText);
+                assetSttJob.addText(createdText);
 
-            log.debug("created asset stt text. ({})", createdText);
+                createdText = assetSttTextRepository.save(createdText);
 
+                log.debug("created asset stt text. ({})", createdText);
+
+            }
         }
 
         publisher.publish(
             AssetSttJobEventType.AUDIO_TRANSCRIBE_COMPLETED,
             AudioTranscribeCompletedEventPayload.builder()
                 .id(assetSttJob.getId())
-                .audioPath(assetSttJob.getAudioPath())
                 .build());
 
     }
 
     @Override
-    public boolean supports(Event<ExtractAudioCompletedEventPayload> event) {
-        return event.getType() == AssetSttJobEventType.EXTRACT_AUDIO_COMPLETED;
+    public boolean supports(Event<SpeakerDiarizeCompleteEventPayload> event) {
+        return event.getType() == AssetSttJobEventType.SPEAKER_DIARIZE_COMPLETED;
     }
 }

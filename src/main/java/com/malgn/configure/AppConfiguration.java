@@ -22,16 +22,16 @@ public class AppConfiguration {
     private final AppProperties properties;
 
     private final ExtractAudioHandler extractAudioHandler;
-    private final AudioTranscribeHandler audioTranscribeHandler;
     private final SpeakerDiarizeHandler speakerDiarizeHandler;
+    private final AudioTranscribeHandler audioTranscribeHandler;
 
     @Bean
     public DelegatingCommandHandler delegatingCommandHandler() {
         DelegatingCommandHandler handler = new DelegatingCommandHandler();
 
         handler.add(extractAudioHandler);
-        handler.add(audioTranscribeHandler);
         handler.add(speakerDiarizeHandler);
+        handler.add(audioTranscribeHandler);
 
         return handler;
     }

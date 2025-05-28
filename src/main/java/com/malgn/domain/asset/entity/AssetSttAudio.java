@@ -5,8 +5,9 @@ import static org.apache.commons.lang3.ObjectUtils.*;
 
 import java.math.BigDecimal;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -29,8 +30,8 @@ import com.malgn.common.entity.annotation.SnowflakeIdGenerateValue;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "assets_stt_texts")
-public class AssetSttText extends BaseTimeEntity<Long> {
+@Table(name = "assets_stt_audios")
+public class AssetSttAudio extends BaseTimeEntity<Long> {
 
     @Id
     @SnowflakeIdGenerateValue
@@ -41,24 +42,32 @@ public class AssetSttText extends BaseTimeEntity<Long> {
     @JoinColumn(name = "job_id")
     private AssetSttJob job;
 
+    @Enumerated(EnumType.STRING)
+    private AssetSttAudioType type;
+
+    private Long fileIndex;
+
     private BigDecimal startTime;
     private BigDecimal endTime;
 
-    private String text;
+    private String audioPath;
 
     @Builder
-    private AssetSttText(Long id, BigDecimal startTime, BigDecimal endTime, String text) {
+    private AssetSttAudio(Long id, AssetSttAudioType type, Long fileIndex, BigDecimal startTime, BigDecimal endTime,
+        String audioPath) {
 
+        checkArgument(isNotEmpty(type), "type must be provided.");
+        checkArgument(isNotEmpty(fileIndex), "fileIndex must be provided.");
         checkArgument(isNotEmpty(startTime), "startTime must be provided.");
         checkArgument(isNotEmpty(endTime), "endTime must be provided.");
-        checkArgument(startTime.compareTo(endTime) <= 0, "startTime must be less than endTime.");
-
-        checkArgument(StringUtils.isNotBlank(text), "text must be provided.");
+        checkArgument(StringUtils.isNotBlank(audioPath), "audioPath must be provided.");
 
         this.id = id;
+        this.type = type;
+        this.fileIndex = fileIndex;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.text = text;
+        this.audioPath = audioPath;
     }
 
     /*
@@ -67,5 +76,4 @@ public class AssetSttText extends BaseTimeEntity<Long> {
     public void updateJob(AssetSttJob job) {
         this.job = job;
     }
-
 }

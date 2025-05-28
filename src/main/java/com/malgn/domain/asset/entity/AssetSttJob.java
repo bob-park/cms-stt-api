@@ -12,6 +12,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 
 import lombok.AccessLevel;
@@ -44,9 +45,13 @@ public class AssetSttJob extends BaseTimeEntity<Long> {
     private TaskStatus status;
 
     private String sourcePath;
-    private String audioPath;
 
     private Boolean isDeleted;
+
+    @Exclude
+    @OrderBy("startTime")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "job")
+    private List<AssetSttAudio> audios = new ArrayList<>();
 
     @Exclude
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "job")
@@ -57,8 +62,7 @@ public class AssetSttJob extends BaseTimeEntity<Long> {
     private List<AssetSttText> texts = new ArrayList<>();
 
     @Builder
-    private AssetSttJob(Long id, Long assetId, TaskStatus status, String sourcePath, String audioPath,
-        Boolean isDeleted) {
+    private AssetSttJob(Long id, Long assetId, TaskStatus status, String sourcePath, Boolean isDeleted) {
 
         checkArgument(isNotEmpty(assetId), "assetId must be provided.");
         checkArgument(StringUtils.isNotBlank(sourcePath), "assetId must be provided.");
@@ -67,7 +71,6 @@ public class AssetSttJob extends BaseTimeEntity<Long> {
         this.assetId = assetId;
         this.status = defaultIfNull(status, TaskStatus.WAITING);
         this.sourcePath = sourcePath;
-        this.audioPath = audioPath;
         this.isDeleted = defaultIfNull(isDeleted, false);
     }
 
@@ -78,8 +81,11 @@ public class AssetSttJob extends BaseTimeEntity<Long> {
         this.status = status;
     }
 
-    public void updateAudioPath(String audioPath) {
-        this.audioPath = audioPath;
+    public void addAudio(AssetSttAudio audio) {
+
+        audio.updateJob(this);
+
+        getAudios().add(audio);
     }
 
     public void addSpeaker(AssetSttSpeaker speaker) {

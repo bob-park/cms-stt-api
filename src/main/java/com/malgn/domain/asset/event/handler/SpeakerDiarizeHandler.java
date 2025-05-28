@@ -23,11 +23,15 @@ import com.malgn.configure.properties.AppProperties;
 import com.malgn.cqrs.event.Event;
 import com.malgn.cqrs.event.handler.CommandHandler;
 import com.malgn.cqrs.outbox.publish.OutboxEventPublisher;
+import com.malgn.domain.asset.entity.AssetSttAudio;
+import com.malgn.domain.asset.entity.AssetSttAudioType;
 import com.malgn.domain.asset.entity.AssetSttJob;
 import com.malgn.domain.asset.entity.AssetSttSpeaker;
 import com.malgn.domain.asset.entity.AssetSttSpeakerTime;
 import com.malgn.domain.asset.event.AssetSttJobEventType;
 import com.malgn.domain.asset.event.AudioTranscribeCompletedEventPayload;
+import com.malgn.domain.asset.event.ExtractAudioCompletedEventPayload;
+import com.malgn.domain.asset.event.SpeakerDiarizeCompleteEventPayload;
 import com.malgn.domain.asset.repository.AssetSttJobRepository;
 import com.malgn.domain.asset.repository.AssetSttSpeakerRepository;
 import com.malgn.domain.asset.repository.AssetSttSpeakerTimeRepository;
@@ -38,7 +42,7 @@ import com.malgn.domain.audio.model.CommonMultipartFile;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class SpeakerDiarizeHandler implements CommandHandler<AudioTranscribeCompletedEventPayload> {
+public class SpeakerDiarizeHandler implements CommandHandler<ExtractAudioCompletedEventPayload> {
 
     private final AppProperties properties;
 
@@ -51,23 +55,35 @@ public class SpeakerDiarizeHandler implements CommandHandler<AudioTranscribeComp
     private final AssetSttSpeakerTimeRepository assetSttSpeakerTimeRepository;
 
     @Override
-    public void handle(Event<AudioTranscribeCompletedEventPayload> event) {
+    public void handle(Event<ExtractAudioCompletedEventPayload> event) {
 
-        AudioTranscribeCompletedEventPayload payload = event.getPayload();
+        ExtractAudioCompletedEventPayload payload = event.getPayload();
 
         AssetSttJob assetSttJob =
             assetSttJobRepository.findById(payload.id())
                 .orElseThrow(() -> new NotFoundException(AssetSttJob.class, payload.id()));
 
         String dir = null;
-        List<AudioSpeakerDiarizationResponse> result = List.of();
 
         try {
             dir = properties.baseLocation().getFile().getAbsolutePath();
+        } catch (IOException e) {
+            throw new ServiceRuntimeException(e);
+        }
 
-            String source = dir + File.separatorChar + assetSttJob.getAudioPath();
+        AssetSttAudio audio =
+            assetSttJob.getAudios().stream()
+                .filter(item -> item.getType() == AssetSttAudioType.ALL)
+                .findAny()
+                .orElseThrow(() -> new NotFoundException("No exist all audio."));
 
-            CommonMultipartFile audioFile = new CommonMultipartFile(IOUtils.toByteArray(new FileInputStream(source)));
+        String absoluteAudioPath = dir + File.separatorChar + audio.getAudioPath();
+
+        List<AudioSpeakerDiarizationResponse> result = List.of();
+
+        try {
+            CommonMultipartFile audioFile =
+                new CommonMultipartFile(IOUtils.toByteArray(new FileInputStream(absoluteAudioPath)));
 
             result = speakerDiarizeClient.diarize(audioFile);
 
@@ -111,8 +127,8 @@ public class SpeakerDiarizeHandler implements CommandHandler<AudioTranscribeComp
 
             AssetSttSpeakerTime createdTime =
                 AssetSttSpeakerTime.builder()
-                    .startTime(item.start().doubleValue())
-                    .endTime(item.end().doubleValue())
+                    .startTime(item.start())
+                    .endTime(item.end())
                     .build();
 
             speaker.addTime(createdTime);
@@ -123,11 +139,17 @@ public class SpeakerDiarizeHandler implements CommandHandler<AudioTranscribeComp
 
         }
 
+        publisher.publish(
+            AssetSttJobEventType.SPEAKER_DIARIZE_COMPLETED,
+            SpeakerDiarizeCompleteEventPayload.builder()
+                .id(assetSttJob.getId())
+                .build());
+
     }
 
     @Override
-    public boolean supports(Event<AudioTranscribeCompletedEventPayload> event) {
-        return event.getType() == AssetSttJobEventType.AUDIO_TRANSCRIBE_COMPLETED;
+    public boolean supports(Event<ExtractAudioCompletedEventPayload> event) {
+        return event.getType() == AssetSttJobEventType.EXTRACT_AUDIO_COMPLETED;
     }
 
     private AssetSttSpeaker findSpeaker(String speakerId, List<AssetSttSpeaker> speakers) {

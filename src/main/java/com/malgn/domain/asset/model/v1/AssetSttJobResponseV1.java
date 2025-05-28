@@ -13,7 +13,6 @@ public record AssetSttJobResponseV1(Long id,
                                     Long assetId,
                                     TaskStatus status,
                                     String sourcePath,
-                                    String audioPath,
                                     Boolean isDeleted,
                                     LocalDateTime createdDate,
                                     LocalDateTime lastModifiedDate)
@@ -25,7 +24,6 @@ public record AssetSttJobResponseV1(Long id,
             .assetId(entity.getAssetId())
             .status(entity.getStatus())
             .sourcePath(entity.getSourcePath())
-            .audioPath(entity.getAudioPath())
             .isDeleted(entity.getIsDeleted())
             .createdDate(entity.getCreatedDate())
             .lastModifiedDate(entity.getLastModifiedDate())

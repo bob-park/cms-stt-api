@@ -5,7 +5,6 @@ import static org.apache.commons.lang3.ObjectUtils.*;
 
 import java.math.BigDecimal;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
@@ -19,10 +18,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.ToString.Exclude;
-
-import org.apache.commons.lang3.ObjectUtils;
-
-import com.google.common.base.Preconditions;
 
 import com.malgn.common.entity.BaseTimeEntity;
 import com.malgn.common.entity.annotation.SnowflakeIdGenerateValue;
@@ -43,19 +38,16 @@ public class AssetSttSpeakerTime extends BaseTimeEntity<Long> {
     @JoinColumn(name = "speaker_id")
     private AssetSttSpeaker speaker;
 
-    @Column(columnDefinition = "real")
-    private Double startTime;
-
-    @Column(columnDefinition = "real")
-    private Double endTime;
+    private BigDecimal startTime;
+    private BigDecimal endTime;
 
     @Builder
-    private AssetSttSpeakerTime(Long id, Double startTime, Double endTime) {
+    private AssetSttSpeakerTime(Long id, BigDecimal startTime, BigDecimal endTime) {
 
         checkArgument(isNotEmpty(startTime), "startTime must provided.");
         checkArgument(isNotEmpty(endTime), "endTime must provided.");
 
-        checkArgument(startTime <= endTime, "startTime must be less than endTime.");
+        checkArgument(startTime.compareTo(endTime) <= 0, "startTime must be less than endTime.");
 
         this.id = id;
         this.startTime = startTime;
