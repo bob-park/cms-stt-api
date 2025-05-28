@@ -5,7 +5,6 @@ import static org.apache.commons.lang3.ObjectUtils.*;
 
 import java.math.BigDecimal;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
@@ -44,6 +43,11 @@ public class AssetSttText extends BaseTimeEntity<Long> {
     private BigDecimal startTime;
     private BigDecimal endTime;
 
+    @Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "speaker_id")
+    private AssetSttSpeaker speaker;
+
     private String text;
 
     @Builder
@@ -66,6 +70,10 @@ public class AssetSttText extends BaseTimeEntity<Long> {
      */
     public void updateJob(AssetSttJob job) {
         this.job = job;
+    }
+
+    public void updateSpeaker(AssetSttSpeaker speaker) {
+        this.speaker = speaker;
     }
 
 }

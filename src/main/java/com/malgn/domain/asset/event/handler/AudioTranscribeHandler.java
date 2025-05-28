@@ -2,6 +2,7 @@ package com.malgn.domain.asset.event.handler;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -24,11 +25,13 @@ import com.malgn.cqrs.outbox.publish.OutboxEventPublisher;
 import com.malgn.domain.asset.entity.AssetSttAudio;
 import com.malgn.domain.asset.entity.AssetSttAudioType;
 import com.malgn.domain.asset.entity.AssetSttJob;
+import com.malgn.domain.asset.entity.AssetSttSpeakerTime;
 import com.malgn.domain.asset.entity.AssetSttText;
 import com.malgn.domain.asset.event.AssetSttJobEventType;
 import com.malgn.domain.asset.event.AudioTranscribeCompletedEventPayload;
 import com.malgn.domain.asset.event.SpeakerDiarizeCompleteEventPayload;
 import com.malgn.domain.asset.repository.AssetSttJobRepository;
+import com.malgn.domain.asset.repository.AssetSttSpeakerTimeRepository;
 import com.malgn.domain.asset.repository.AssetSttTextRepository;
 import com.malgn.domain.audio.parser.SrtFormatParser;
 import com.malgn.domain.audio.parser.TimeLineText;
@@ -46,6 +49,7 @@ public class AudioTranscribeHandler implements CommandHandler<SpeakerDiarizeComp
 
     private final AssetSttJobRepository assetSttJobRepository;
     private final AssetSttTextRepository assetSttTextRepository;
+    private final AssetSttSpeakerTimeRepository assetSttSpeakerTimeRepository;
 
     @Override
     public void handle(Event<SpeakerDiarizeCompleteEventPayload> event) {
@@ -87,14 +91,23 @@ public class AudioTranscribeHandler implements CommandHandler<SpeakerDiarizeComp
 
             for (TimeLineText text : texts) {
 
+                BigDecimal startTime = text.startTime().add(audio.getStartTime());
+                BigDecimal endTime = text.endTime().add(audio.getStartTime());
+
+                AssetSttSpeakerTime speakerTime = assetSttSpeakerTimeRepository.getSpeakerTime(startTime, endTime);
+
                 AssetSttText createdText =
                     AssetSttText.builder()
-                        .startTime(text.startTime().add(audio.getStartTime()))
-                        .endTime(text.endTime().add(audio.getStartTime()))
+                        .startTime(startTime)
+                        .endTime(endTime)
                         .text(text.text())
                         .build();
 
                 assetSttJob.addText(createdText);
+
+                if (speakerTime != null) {
+                    speakerTime.getSpeaker().addText(createdText);
+                }
 
                 createdText = assetSttTextRepository.save(createdText);
 

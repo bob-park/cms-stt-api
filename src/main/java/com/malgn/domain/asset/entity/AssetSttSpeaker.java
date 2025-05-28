@@ -48,6 +48,10 @@ public class AssetSttSpeaker extends BaseTimeEntity<Long> {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "speaker")
     private List<AssetSttSpeakerTime> times = new ArrayList<>();
 
+    @Exclude
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "speaker")
+    private List<AssetSttText> texts = new ArrayList<>();
+
     @Builder
     private AssetSttSpeaker(Long id, String speaker, String speakerName) {
 
@@ -70,5 +74,11 @@ public class AssetSttSpeaker extends BaseTimeEntity<Long> {
         time.updateSpeaker(this);
 
         getTimes().add(time);
+    }
+
+    public void addText(AssetSttText text) {
+        text.updateSpeaker(this);
+
+        getTexts().add(text);
     }
 }
