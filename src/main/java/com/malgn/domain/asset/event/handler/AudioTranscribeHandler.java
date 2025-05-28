@@ -8,11 +8,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.ai.audio.transcription.AudioTranscriptionPrompt;
-import org.springframework.ai.audio.transcription.AudioTranscriptionResponse;
-import org.springframework.ai.openai.OpenAiAudioTranscriptionModel;
-import org.springframework.ai.openai.OpenAiAudioTranscriptionOptions;
-import org.springframework.ai.openai.api.OpenAiAudioApi.TranscriptResponseFormat;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Component;
 
@@ -33,19 +28,24 @@ import com.malgn.domain.asset.event.SpeakerDiarizeCompleteEventPayload;
 import com.malgn.domain.asset.repository.AssetSttJobRepository;
 import com.malgn.domain.asset.repository.AssetSttSpeakerTimeRepository;
 import com.malgn.domain.asset.repository.AssetSttTextRepository;
-import com.malgn.domain.audio.parser.SrtFormatParser;
-import com.malgn.domain.audio.parser.TimeLineText;
+import com.malgn.domain.audio.client.OpenAiAudioTranscriptionClient;
+import com.malgn.domain.audio.model.ai.OpenAiAudioTranscriptionResponse;
+import com.malgn.domain.audio.model.ai.OpenAiAudioTranscriptionSegment;
 
 @Slf4j
 @RequiredArgsConstructor
 @Component
 public class AudioTranscribeHandler implements CommandHandler<SpeakerDiarizeCompleteEventPayload> {
 
+    private static final String DEFAULT_PROMPT = """
+        토론을 하고 있으며, 대화의 한문장씩 추출해줘
+        """;
+
     private final AppProperties properties;
 
     private final OutboxEventPublisher publisher;
 
-    private final OpenAiAudioTranscriptionModel transcriptionModel;
+    private final OpenAiAudioTranscriptionClient transcribeClient;
 
     private final AssetSttJobRepository assetSttJobRepository;
     private final AssetSttTextRepository assetSttTextRepository;
@@ -75,32 +75,24 @@ public class AudioTranscribeHandler implements CommandHandler<SpeakerDiarizeComp
         for (AssetSttAudio audio : audios) {
             String absoluteAudioPath = dir + File.separatorChar + audio.getAudioPath();
 
-            AudioTranscriptionPrompt prompt =
-                new AudioTranscriptionPrompt(
-                    new FileSystemResource(absoluteAudioPath),
-                    OpenAiAudioTranscriptionOptions.builder()
-                        .model("whisper-1")
-                        .language("ko")
-                        .responseFormat(TranscriptResponseFormat.SRT)
-                        .build());
+            OpenAiAudioTranscriptionResponse result =
+                transcribeClient.transcribe(new FileSystemResource(absoluteAudioPath));
 
-            AudioTranscriptionResponse response = transcriptionModel.call(prompt);
-            String contents = response.getResult().getOutput();
+            List<OpenAiAudioTranscriptionSegment> segments = result.segments();
 
-            List<TimeLineText> texts = SrtFormatParser.parse(contents);
+            for (OpenAiAudioTranscriptionSegment segment : segments) {
 
-            for (TimeLineText text : texts) {
+                BigDecimal startTime = segment.start().add(audio.getStartTime());
+                BigDecimal endTime = segment.end().add(audio.getStartTime());
 
-                BigDecimal startTime = text.startTime().add(audio.getStartTime());
-                BigDecimal endTime = text.endTime().add(audio.getStartTime());
-
-                AssetSttSpeakerTime speakerTime = assetSttSpeakerTimeRepository.getSpeakerTime(startTime, endTime);
+                AssetSttSpeakerTime speakerTime =
+                    assetSttSpeakerTimeRepository.getSpeakerTime(startTime, endTime);
 
                 AssetSttText createdText =
                     AssetSttText.builder()
                         .startTime(startTime)
                         .endTime(endTime)
-                        .text(text.text())
+                        .text(segment.text())
                         .build();
 
                 assetSttJob.addText(createdText);
@@ -114,6 +106,7 @@ public class AudioTranscribeHandler implements CommandHandler<SpeakerDiarizeComp
                 log.debug("created asset stt text. ({})", createdText);
 
             }
+
         }
 
         publisher.publish(

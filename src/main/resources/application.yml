@@ -65,10 +65,8 @@ spring:
     openai:
       api-key: ${openai_api_key}
       audio:
-        transcription:
-          options:
-            model: whisper-1
-            language: ko
+        speech:
+          base-url: ${openai_speech_url}
   kafka:
     consumer:
       bootstrap-servers: ${kafka_bootstrap_servers:localhost:9092}
