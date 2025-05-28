@@ -10,11 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.malgn.cqrs.outbox.publish.OutboxEventPublisher;
 import com.malgn.domain.asset.entity.AssetSttJob;
-import com.malgn.domain.asset.event.AssetSttJobCreateEventPayload;
+import com.malgn.domain.asset.event.AssetSttJobCreatedEventPayload;
 import com.malgn.domain.asset.event.AssetSttJobEventType;
 import com.malgn.domain.asset.model.AssetSttJobResponse;
 import com.malgn.domain.asset.model.CreateAssetSttJobRequest;
-import com.malgn.domain.asset.model.v1.AssetSttJobResponseV1;
 import com.malgn.domain.asset.model.v1.CreateAssetSttJobRequestV1;
 import com.malgn.domain.asset.repository.AssetSttJobRepository;
 import com.malgn.domain.asset.service.AssetSttJobService;
@@ -46,8 +45,8 @@ public class AssetSttJobServiceV1 implements AssetSttJobService {
         log.debug("created job. ({})", createdJob);
 
         publisher.publish(
-            AssetSttJobEventType.CREATE_ASSET_STT_JOB,
-            AssetSttJobCreateEventPayload.builder()
+            AssetSttJobEventType.ASSET_STT_JOB_CREATED,
+            AssetSttJobCreatedEventPayload.builder()
                 .id(createdJob.getId())
                 .source(createdJob.getSourcePath())
                 .build());

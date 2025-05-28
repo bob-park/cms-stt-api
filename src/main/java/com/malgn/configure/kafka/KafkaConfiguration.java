@@ -6,6 +6,8 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
 
+import com.malgn.cqrs.event.handler.DelegatingCommandHandler;
+
 @Configuration
 public class KafkaConfiguration {
 
@@ -19,5 +21,7 @@ public class KafkaConfiguration {
 
         return factory;
     }
+
+
 
 }

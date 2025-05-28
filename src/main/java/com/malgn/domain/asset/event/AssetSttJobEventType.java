@@ -15,8 +15,8 @@ import com.malgn.cqrs.event.EventType;
 @RequiredArgsConstructor
 public enum AssetSttJobEventType implements EventType {
 
-    CREATE_ASSET_STT_JOB(Topic.ASSET_STT_JOB, "ASSET_STT_JOB_CREATE", AssetSttJobCreateEventPayload.class),
-    ;
+    ASSET_STT_JOB_CREATED(Topic.ASSET_STT_JOB, "ASSET_STT_JOB_CREATED", AssetSttJobCreatedEventPayload.class),
+    EXTRACT_AUDIO_COMPLETED(Topic.ASSET_STT_JOB, "EXTRACT_AUDIO_COMPLETED", ExtractAudioCompletedEventPayload.class);
 
     private final String topic;
     private final String type;
