@@ -27,7 +27,7 @@ import com.malgn.domain.asset.entity.AssetSttJob;
 import com.malgn.domain.asset.entity.AssetSttSpeaker;
 import com.malgn.domain.asset.entity.AssetSttSpeakerTime;
 import com.malgn.domain.asset.event.AssetSttJobEventType;
-import com.malgn.domain.asset.event.ExtractAudioCompletedEventPayload;
+import com.malgn.domain.asset.event.AudioTranscribeCompletedEventPayload;
 import com.malgn.domain.asset.repository.AssetSttJobRepository;
 import com.malgn.domain.asset.repository.AssetSttSpeakerRepository;
 import com.malgn.domain.asset.repository.AssetSttSpeakerTimeRepository;
@@ -38,7 +38,7 @@ import com.malgn.domain.audio.model.CommonMultipartFile;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class SpeakerDiarizeHandler implements CommandHandler<ExtractAudioCompletedEventPayload> {
+public class SpeakerDiarizeHandler implements CommandHandler<AudioTranscribeCompletedEventPayload> {
 
     private final AppProperties properties;
 
@@ -51,9 +51,9 @@ public class SpeakerDiarizeHandler implements CommandHandler<ExtractAudioComplet
     private final AssetSttSpeakerTimeRepository assetSttSpeakerTimeRepository;
 
     @Override
-    public void handle(Event<ExtractAudioCompletedEventPayload> event) {
+    public void handle(Event<AudioTranscribeCompletedEventPayload> event) {
 
-        ExtractAudioCompletedEventPayload payload = event.getPayload();
+        AudioTranscribeCompletedEventPayload payload = event.getPayload();
 
         AssetSttJob assetSttJob =
             assetSttJobRepository.findById(payload.id())
@@ -126,8 +126,8 @@ public class SpeakerDiarizeHandler implements CommandHandler<ExtractAudioComplet
     }
 
     @Override
-    public boolean supports(Event<ExtractAudioCompletedEventPayload> event) {
-        return event.getType() == AssetSttJobEventType.EXTRACT_AUDIO_COMPLETED;
+    public boolean supports(Event<AudioTranscribeCompletedEventPayload> event) {
+        return event.getType() == AssetSttJobEventType.AUDIO_TRANSCRIBE_COMPLETED;
     }
 
     private AssetSttSpeaker findSpeaker(String speakerId, List<AssetSttSpeaker> speakers) {

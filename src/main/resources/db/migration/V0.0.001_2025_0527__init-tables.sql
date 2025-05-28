@@ -11,6 +11,19 @@ create table assets_stt_jobs
     last_modified_date timestamp
 );
 
+-- assets_stt_texts
+create table assets_stt_texts
+(
+    id                 bigint                  not null primary key,
+    job_id             bigint                  not null,
+    start_time         real                    not null,
+    end_Time           real                    not null,
+    text               text                    not null,
+    created_date       timestamp default now() not null,
+    last_modified_date timestamp
+);
+
+
 -- assets_stt_speakers
 create table assets_stt_speakers
 (
@@ -31,6 +44,7 @@ create table assets_stt_speakers_times
     speaker_id         bigint                  not null,
     start_time         real                    not null,
     end_Time           real                    not null,
+    text               text,
     created_date       timestamp default now() not null,
     last_modified_date timestamp,
 

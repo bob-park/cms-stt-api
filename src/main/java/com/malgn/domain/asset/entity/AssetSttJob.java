@@ -52,6 +52,10 @@ public class AssetSttJob extends BaseTimeEntity<Long> {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "job")
     private List<AssetSttSpeaker> speakers = new ArrayList<>();
 
+    @Exclude
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "job")
+    private List<AssetSttText> texts = new ArrayList<>();
+
     @Builder
     private AssetSttJob(Long id, Long assetId, TaskStatus status, String sourcePath, String audioPath,
         Boolean isDeleted) {
@@ -83,6 +87,12 @@ public class AssetSttJob extends BaseTimeEntity<Long> {
         speaker.updateJob(this);
 
         getSpeakers().add(speaker);
+    }
+
+    public void addText(AssetSttText text) {
+        text.updateJob(this);
+
+        getTexts().add(text);
     }
 
 }

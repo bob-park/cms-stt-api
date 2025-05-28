@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.malgn.configure.properties.AppProperties;
 import com.malgn.cqrs.event.handler.DelegatingCommandHandler;
+import com.malgn.domain.asset.event.handler.AudioTranscribeHandler;
 import com.malgn.domain.asset.event.handler.ExtractAudioHandler;
 import com.malgn.domain.asset.event.handler.SpeakerDiarizeHandler;
 
@@ -21,6 +22,7 @@ public class AppConfiguration {
     private final AppProperties properties;
 
     private final ExtractAudioHandler extractAudioHandler;
+    private final AudioTranscribeHandler audioTranscribeHandler;
     private final SpeakerDiarizeHandler speakerDiarizeHandler;
 
     @Bean
@@ -28,6 +30,7 @@ public class AppConfiguration {
         DelegatingCommandHandler handler = new DelegatingCommandHandler();
 
         handler.add(extractAudioHandler);
+        handler.add(audioTranscribeHandler);
         handler.add(speakerDiarizeHandler);
 
         return handler;
