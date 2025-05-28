@@ -15,11 +15,15 @@ import com.malgn.cqrs.event.EventType;
 @RequiredArgsConstructor
 public enum AssetSttJobEventType implements EventType {
 
-    CREATE_ASSET_STT_JOB("asset_stt_job", "ASSET_STT_JOB_CREATE", AssetSttJobCreateEventPayload.class),
+    CREATE_ASSET_STT_JOB(Topic.ASSET_STT_JOB, "ASSET_STT_JOB_CREATE", AssetSttJobCreateEventPayload.class),
     ;
 
     private final String topic;
     private final String type;
     private final Class<? extends EventPayload> payloadClass;
+
+    public static class Topic {
+        public static final String ASSET_STT_JOB = "asset_stt_job";
+    }
 
 }
