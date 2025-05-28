@@ -37,20 +37,3 @@ create table assets_stt_speakers_times
     foreign key (speaker_id) references assets_stt_speakers (id)
 );
 
-
--- assets_stt_speaker_texts
-create table assets_stt_speakers_texts
-(
-    id                 bigint                  not null primary key,
-    job_id             bigint                  not null,
-    speaker_id         bigint                  not null,
-    start_time         real                    not null,
-    end_time           real                    not null,
-    created_date       timestamp default now() not null,
-    last_modified_date timestamp,
-
-
-    foreign key (job_id) references assets_stt_jobs (id),
-    foreign key (speaker_id) references assets_stt_speakers (id)
-);
-

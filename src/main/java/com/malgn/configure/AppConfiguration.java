@@ -9,10 +9,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.malgn.configure.properties.AppProperties;
 import com.malgn.cqrs.event.handler.DelegatingCommandHandler;
-import com.malgn.cqrs.outbox.publish.OutboxEventPublisher;
 import com.malgn.domain.asset.event.handler.ExtractAudioHandler;
-import com.malgn.domain.asset.repository.AssetSttJobRepository;
-import com.malgn.domain.transcode.runner.extract.ExtractAudioRunner;
+import com.malgn.domain.asset.event.handler.SpeakerDiarizeHandler;
 
 @RequiredArgsConstructor
 @EnableScheduling
@@ -22,17 +20,15 @@ public class AppConfiguration {
 
     private final AppProperties properties;
 
-    private final AssetSttJobRepository assetSttJobRepository;
-
-    private final ExtractAudioRunner extractAudioRunner;
-
-    private final OutboxEventPublisher publisher;
+    private final ExtractAudioHandler extractAudioHandler;
+    private final SpeakerDiarizeHandler speakerDiarizeHandler;
 
     @Bean
     public DelegatingCommandHandler delegatingCommandHandler() {
         DelegatingCommandHandler handler = new DelegatingCommandHandler();
 
-        handler.add(new ExtractAudioHandler(properties, extractAudioRunner, publisher, assetSttJobRepository));
+        handler.add(extractAudioHandler);
+        handler.add(speakerDiarizeHandler);
 
         return handler;
     }

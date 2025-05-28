@@ -1,17 +1,21 @@
 package com.malgn.domain.asset.event.handler;
 
-import static com.google.common.base.Preconditions.*;
-import static org.apache.commons.lang3.ObjectUtils.*;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.stereotype.Component;
+
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+
+import com.google.common.collect.Lists;
 
 import com.malgn.common.exception.NotFoundException;
 import com.malgn.common.exception.ServiceRuntimeException;
@@ -20,36 +24,31 @@ import com.malgn.cqrs.event.Event;
 import com.malgn.cqrs.event.handler.CommandHandler;
 import com.malgn.cqrs.outbox.publish.OutboxEventPublisher;
 import com.malgn.domain.asset.entity.AssetSttJob;
+import com.malgn.domain.asset.entity.AssetSttSpeaker;
+import com.malgn.domain.asset.entity.AssetSttSpeakerTime;
+import com.malgn.domain.asset.event.AssetSttJobEventType;
 import com.malgn.domain.asset.event.ExtractAudioCompletedEventPayload;
 import com.malgn.domain.asset.repository.AssetSttJobRepository;
+import com.malgn.domain.asset.repository.AssetSttSpeakerRepository;
+import com.malgn.domain.asset.repository.AssetSttSpeakerTimeRepository;
 import com.malgn.domain.audio.feign.SpeakerDiarizeFeignClient;
 import com.malgn.domain.audio.model.AudioSpeakerDiarizationResponse;
 import com.malgn.domain.audio.model.CommonMultipartFile;
 
 @Slf4j
+@RequiredArgsConstructor
+@Component
 public class SpeakerDiarizeHandler implements CommandHandler<ExtractAudioCompletedEventPayload> {
 
     private final AppProperties properties;
 
+    private final OutboxEventPublisher publisher;
+
     private final SpeakerDiarizeFeignClient speakerDiarizeClient;
 
-    private final OutboxEventPublisher publisher;
     private final AssetSttJobRepository assetSttJobRepository;
-
-    @Builder
-    private SpeakerDiarizeHandler(AppProperties properties, SpeakerDiarizeFeignClient speakerDiarizeClient,
-        OutboxEventPublisher publisher, AssetSttJobRepository assetSttJobRepository) {
-
-        checkArgument(isNotEmpty(properties), "properties must provided.");
-        checkArgument(isNotEmpty(speakerDiarizeClient), "speakerDiarizeClient must provided.");
-        checkArgument(isNotEmpty(publisher), "publisher must provided.");
-        checkArgument(isNotEmpty(assetSttJobRepository), "assetSttJobRepository must provided.");
-
-        this.properties = properties;
-        this.speakerDiarizeClient = speakerDiarizeClient;
-        this.publisher = publisher;
-        this.assetSttJobRepository = assetSttJobRepository;
-    }
+    private final AssetSttSpeakerRepository assetSttSpeakerRepository;
+    private final AssetSttSpeakerTimeRepository assetSttSpeakerTimeRepository;
 
     @Override
     public void handle(Event<ExtractAudioCompletedEventPayload> event) {
@@ -61,7 +60,7 @@ public class SpeakerDiarizeHandler implements CommandHandler<ExtractAudioComplet
                 .orElseThrow(() -> new NotFoundException(AssetSttJob.class, payload.id()));
 
         String dir = null;
-        List<AudioSpeakerDiarizationResponse> result = null;
+        List<AudioSpeakerDiarizationResponse> result = List.of();
 
         try {
             dir = properties.baseLocation().getFile().getAbsolutePath();
@@ -76,10 +75,65 @@ public class SpeakerDiarizeHandler implements CommandHandler<ExtractAudioComplet
             throw new ServiceRuntimeException(e);
         }
 
+        // create speakers
+        Set<String> speakerIds =
+            result.stream()
+                .map(AudioSpeakerDiarizationResponse::speaker)
+                .collect(Collectors.toSet());
+
+        List<AssetSttSpeaker> speakers = Lists.newArrayList();
+
+        for (String speakerId : speakerIds) {
+            AssetSttSpeaker createdSpeaker =
+                AssetSttSpeaker.builder()
+                    .speaker(speakerId)
+                    .build();
+
+            assetSttJob.addSpeaker(createdSpeaker);
+
+            createdSpeaker = assetSttSpeakerRepository.save(createdSpeaker);
+
+            log.debug("created speaker. ({})", createdSpeaker);
+
+            speakers.add(createdSpeaker);
+
+        }
+
+        // create speaker times
+        for (AudioSpeakerDiarizationResponse item : result) {
+
+            AssetSttSpeaker speaker = findSpeaker(item.speaker(), speakers);
+
+            if (speaker == null) {
+                log.warn("speaker not found. ({})", item.speaker());
+                continue;
+            }
+
+            AssetSttSpeakerTime createdTime =
+                AssetSttSpeakerTime.builder()
+                    .startTime(item.start().doubleValue())
+                    .endTime(item.end().doubleValue())
+                    .build();
+
+            speaker.addTime(createdTime);
+
+            createdTime = assetSttSpeakerTimeRepository.save(createdTime);
+
+            log.debug("created speaker time. ({})", createdTime);
+
+        }
+
     }
 
     @Override
     public boolean supports(Event<ExtractAudioCompletedEventPayload> event) {
-        return CommandHandler.super.supports(event);
+        return event.getType() == AssetSttJobEventType.EXTRACT_AUDIO_COMPLETED;
+    }
+
+    private AssetSttSpeaker findSpeaker(String speakerId, List<AssetSttSpeaker> speakers) {
+        return speakers.stream()
+            .filter(speaker -> StringUtils.equals(speaker.getSpeaker(), speakerId))
+            .findAny()
+            .orElse(null);
     }
 }

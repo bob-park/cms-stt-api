@@ -3,10 +3,15 @@ package com.malgn.domain.asset.entity;
 import static com.google.common.base.Preconditions.*;
 import static org.apache.commons.lang3.ObjectUtils.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import lombok.AccessLevel;
@@ -14,6 +19,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.ToString.Exclude;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -42,6 +48,10 @@ public class AssetSttJob extends BaseTimeEntity<Long> {
 
     private Boolean isDeleted;
 
+    @Exclude
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "job")
+    private List<AssetSttSpeaker> speakers = new ArrayList<>();
+
     @Builder
     private AssetSttJob(Long id, Long assetId, TaskStatus status, String sourcePath, String audioPath,
         Boolean isDeleted) {
@@ -57,6 +67,9 @@ public class AssetSttJob extends BaseTimeEntity<Long> {
         this.isDeleted = defaultIfNull(isDeleted, false);
     }
 
+    /*
+     * 편의 메서드
+     */
     public void updateStatus(TaskStatus status) {
         this.status = status;
     }
@@ -64,4 +77,12 @@ public class AssetSttJob extends BaseTimeEntity<Long> {
     public void updateAudioPath(String audioPath) {
         this.audioPath = audioPath;
     }
+
+    public void addSpeaker(AssetSttSpeaker speaker) {
+
+        speaker.updateJob(this);
+
+        getSpeakers().add(speaker);
+    }
+
 }

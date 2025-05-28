@@ -6,6 +6,8 @@ import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.stereotype.Component;
+
 import org.apache.commons.io.FilenameUtils;
 
 import com.malgn.common.exception.NotFoundException;
@@ -25,6 +27,7 @@ import com.malgn.domain.transcode.runner.extract.ExtractAudioRunner;
 
 @Slf4j
 @RequiredArgsConstructor
+@Component
 public class ExtractAudioHandler implements CommandHandler<AssetSttJobCreatedEventPayload> {
 
     private final AppProperties properties;
