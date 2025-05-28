@@ -32,9 +32,6 @@ spring:
     multipart:
       max-file-size: -1
       max-request-size: -1
-  batch:
-    jdbc:
-      initialize-schema: never # schema-postgresql.sql
   data:
     redis:
       repositories:
@@ -72,6 +69,10 @@ spring:
           options:
             model: whisper-1
             language: ko
+  kafka:
+    consumer:
+      bootstrap-servers: ${kafka_bootstrap_servers:localhost:9092}
+      group-id: asset_stt_job
 
 ## eureka
 eureka:
@@ -99,6 +100,9 @@ malgn:
   notification:
     enabled: off
     host: ${notification_host:http://localhost:8080}
+  cqrs:
+    enabled: on
+    bootstrap-servers: ${kafka_bootstrap_servers:localhost:9092}
 
 ## app
 app:
