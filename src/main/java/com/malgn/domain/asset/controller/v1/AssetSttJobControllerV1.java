@@ -1,17 +1,23 @@
 package com.malgn.domain.asset.controller.v1;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourceRegion;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRange;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,12 +61,29 @@ public class AssetSttJobControllerV1 {
     }
 
     @GetMapping(path = "{jobId:\\d+}/resource")
-    public ResourceRegion getResource(@PathVariable long assetId, @PathVariable long jobId,
+    public ResponseEntity<ResourceRegion> getResource(@PathVariable long assetId, @PathVariable long jobId,
         @RequestHeader HttpHeaders httpHeaders) throws IOException {
 
         HttpRange httpRange = httpHeaders.getRange().stream().findFirst().orElse(null);
 
-        return assetSttJobResourceService.getResourceWithRange(httpRange, Id.of(AssetSttJob.class, jobId));
+        ResourceRegion resourceRegion =
+            assetSttJobResourceService.getResourceWithRange(httpRange, Id.of(AssetSttJob.class, jobId));
+        Resource resource = resourceRegion.getResource();
+
+        return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+            .headers(headers -> {
+                MediaType mediaType =
+                    MediaTypeFactory.getMediaType(resource)
+                        .orElse(MediaType.APPLICATION_OCTET_STREAM);
+
+                headers.setContentType(mediaType);
+
+                httpHeaders.setContentDisposition(
+                    ContentDisposition.attachment()
+                        .filename(resource.getFilename(), StandardCharsets.UTF_8)
+                        .build());
+            })
+            .body(resourceRegion);
     }
 
 }
