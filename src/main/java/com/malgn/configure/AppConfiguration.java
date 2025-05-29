@@ -11,6 +11,7 @@ import com.malgn.configure.properties.AppProperties;
 import com.malgn.cqrs.event.handler.DelegatingCommandHandler;
 import com.malgn.domain.asset.event.handler.AudioTranscribeHandler;
 import com.malgn.domain.asset.event.handler.ExtractAudioHandler;
+import com.malgn.domain.asset.event.handler.SelectedSpeakerTextHandler;
 import com.malgn.domain.asset.event.handler.SpeakerDiarizeHandler;
 
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ public class AppConfiguration {
     private final ExtractAudioHandler extractAudioHandler;
     private final SpeakerDiarizeHandler speakerDiarizeHandler;
     private final AudioTranscribeHandler audioTranscribeHandler;
+    private final SelectedSpeakerTextHandler selectedSpeakerTextHandler;
 
     @Bean
     public DelegatingCommandHandler delegatingCommandHandler() {
@@ -32,6 +34,7 @@ public class AppConfiguration {
         handler.add(extractAudioHandler);
         handler.add(speakerDiarizeHandler);
         handler.add(audioTranscribeHandler);
+        handler.add(selectedSpeakerTextHandler);
 
         return handler;
     }
