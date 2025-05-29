@@ -9,7 +9,7 @@ import com.malgn.domain.asset.entity.AssetSttJob;
 import com.malgn.domain.asset.model.AssetSttJobResponse;
 
 @Builder
-public record AssetSttJobResponseV1(Long id,
+public record AssetSttJobResponseV1(String id,
                                     Long assetId,
                                     TaskStatus status,
                                     String sourcePath,
@@ -20,7 +20,7 @@ public record AssetSttJobResponseV1(Long id,
 
     public static AssetSttJobResponse from(AssetSttJob entity) {
         return AssetSttJobResponseV1.builder()
-            .id(entity.getId())
+            .id(String.valueOf(entity.getId()))
             .assetId(entity.getAssetId())
             .status(entity.getStatus())
             .sourcePath(entity.getSourcePath())

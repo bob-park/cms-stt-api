@@ -5,7 +5,7 @@ import com.malgn.common.type.task.TaskStatus;
 
 public interface AssetSttJobResponse extends CommonResponse {
 
-    Long id();
+    String id();
 
     Long assetId();
 
