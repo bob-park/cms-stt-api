@@ -85,9 +85,6 @@ public class AudioTranscribeHandler implements CommandHandler<SpeakerDiarizeComp
                 BigDecimal startTime = segment.start().add(audio.getStartTime());
                 BigDecimal endTime = segment.end().add(audio.getStartTime());
 
-                AssetSttSpeakerTime speakerTime =
-                    assetSttSpeakerTimeRepository.getSpeakerTime(startTime, endTime);
-
                 AssetSttText createdText =
                     AssetSttText.builder()
                         .startTime(startTime)
@@ -96,10 +93,6 @@ public class AudioTranscribeHandler implements CommandHandler<SpeakerDiarizeComp
                         .build();
 
                 assetSttJob.addText(createdText);
-
-                if (speakerTime != null) {
-                    speakerTime.getSpeaker().addText(createdText);
-                }
 
                 createdText = assetSttTextRepository.save(createdText);
 

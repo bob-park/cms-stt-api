@@ -1,5 +1,6 @@
 package com.malgn.domain.asset.repository.query.impl;
 
+import static com.malgn.domain.asset.entity.QAssetSttSpeaker.*;
 import static com.malgn.domain.asset.entity.QAssetSttSpeakerTime.*;
 
 import java.math.BigDecimal;
@@ -7,7 +8,6 @@ import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import com.malgn.domain.asset.entity.AssetSttSpeakerTime;
@@ -19,13 +19,17 @@ public class AssetSttSpeakerTimeQueryRepositoryImpl implements AssetSttSpeakerTi
     private final JPAQueryFactory query;
 
     @Override
-    public AssetSttSpeakerTime getSpeakerTime(BigDecimal from, BigDecimal to) {
+    public AssetSttSpeakerTime getSpeakerTime(Long jobId, BigDecimal from, BigDecimal to) {
 
         return query.selectFrom(assetSttSpeakerTime)
+            .leftJoin(assetSttSpeakerTime.speaker, assetSttSpeaker).fetchJoin()
             .where(
+                assetSttSpeaker.job.id.eq(jobId),
                 Expressions.asNumber(from).between(assetSttSpeakerTime.startTime, assetSttSpeakerTime.endTime)
                     .or(Expressions.asNumber(to).between(assetSttSpeakerTime.startTime, assetSttSpeakerTime.endTime)))
-            .orderBy(assetSttSpeakerTime.startTime.asc())
+            .orderBy(
+                assetSttSpeakerTime.startTime.subtract(from)
+                    .add(assetSttSpeakerTime.endTime.subtract(to)).asc())
             .limit(1)
             .offset(0)
             .fetchOne();

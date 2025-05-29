@@ -6,6 +6,6 @@ import com.malgn.domain.asset.entity.AssetSttText;
 
 public interface AssetSttTextQueryRepository {
 
-    List<AssetSttText> getText(double startTime, double endTime);
+    List<AssetSttText> getAll(Long jobId);
 
 }

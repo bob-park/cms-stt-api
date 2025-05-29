@@ -124,6 +124,7 @@ public class ExtractAudioHandler implements CommandHandler<AssetSttJobCreatedEve
         // 전체
         String relativeAllAudioPath =
             FilenameUtils.getFullPath(assetSttJob.getSourcePath())
+                + baseName + File.separatorChar
                 + baseName + "." + ExtractAudioRunner.AUDIO_EXTENSION;
 
         runner.run(
@@ -166,6 +167,7 @@ public class ExtractAudioHandler implements CommandHandler<AssetSttJobCreatedEve
         for (int i = 0; i < totalFileCount; i++) {
             String relativeDestPath =
                 FilenameUtils.getFullPath(assetSttJob.getSourcePath())
+                    + baseName + File.separatorChar
                     + baseName + "_" + i + "." + ExtractAudioRunner.AUDIO_EXTENSION;
 
             double startTime = (double)MAX_AUDIO_SECONDS * i;

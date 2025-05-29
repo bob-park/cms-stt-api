@@ -6,6 +6,6 @@ import com.malgn.domain.asset.entity.AssetSttSpeakerTime;
 
 public interface AssetSttSpeakerTimeQueryRepository {
 
-    AssetSttSpeakerTime getSpeakerTime(BigDecimal from, BigDecimal to);
+    AssetSttSpeakerTime getSpeakerTime(Long jobId, BigDecimal from, BigDecimal to);
 
 }
