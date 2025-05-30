@@ -3,6 +3,7 @@ package com.malgn.domain.asset.event.handler;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -29,7 +31,6 @@ import com.malgn.domain.asset.entity.AssetSttJob;
 import com.malgn.domain.asset.entity.AssetSttSpeaker;
 import com.malgn.domain.asset.entity.AssetSttSpeakerTime;
 import com.malgn.domain.asset.event.AssetSttJobEventType;
-import com.malgn.domain.asset.event.AudioTranscribeCompletedEventPayload;
 import com.malgn.domain.asset.event.ExtractAudioCompletedEventPayload;
 import com.malgn.domain.asset.event.SpeakerDiarizeCompleteEventPayload;
 import com.malgn.domain.asset.repository.AssetSttJobRepository;
@@ -54,6 +55,7 @@ public class SpeakerDiarizeHandler implements CommandHandler<ExtractAudioComplet
     private final AssetSttSpeakerRepository assetSttSpeakerRepository;
     private final AssetSttSpeakerTimeRepository assetSttSpeakerTimeRepository;
 
+    @Transactional
     @Override
     public void handle(Event<ExtractAudioCompletedEventPayload> event) {
 
@@ -132,6 +134,12 @@ public class SpeakerDiarizeHandler implements CommandHandler<ExtractAudioComplet
                     .build();
 
             speaker.addTime(createdTime);
+
+            try {
+                Thread.sleep(Duration.ofMillis(10));
+            } catch (InterruptedException e) {
+                throw new ServiceRuntimeException(e);
+            }
 
             createdTime = assetSttSpeakerTimeRepository.save(createdTime);
 

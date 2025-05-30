@@ -3,6 +3,7 @@ package com.malgn.domain.asset.event.handler;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.malgn.common.exception.NotFoundException;
 import com.malgn.common.exception.ServiceRuntimeException;
@@ -50,6 +52,7 @@ public class AudioTranscribeHandler implements CommandHandler<SpeakerDiarizeComp
     private final AssetSttTextRepository assetSttTextRepository;
     private final AssetSttSpeakerTimeRepository assetSttSpeakerTimeRepository;
 
+    @Transactional
     @Override
     public void handle(Event<SpeakerDiarizeCompleteEventPayload> event) {
 
@@ -92,6 +95,12 @@ public class AudioTranscribeHandler implements CommandHandler<SpeakerDiarizeComp
                         .build();
 
                 assetSttJob.addText(createdText);
+
+                try {
+                    Thread.sleep(Duration.ofMillis(10));
+                } catch (InterruptedException e) {
+                    throw new ServiceRuntimeException(e);
+                }
 
                 createdText = assetSttTextRepository.save(createdText);
 

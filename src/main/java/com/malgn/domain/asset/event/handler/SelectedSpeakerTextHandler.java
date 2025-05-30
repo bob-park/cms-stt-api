@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.malgn.cqrs.event.Event;
 import com.malgn.cqrs.event.handler.CommandHandler;
@@ -14,6 +15,7 @@ import com.malgn.domain.asset.entity.AssetSttSpeakerTime;
 import com.malgn.domain.asset.entity.AssetSttText;
 import com.malgn.domain.asset.event.AssetSttJobEventType;
 import com.malgn.domain.asset.event.AudioTranscribeCompletedEventPayload;
+import com.malgn.domain.asset.event.SelectedSpeakerTextCompletedEventPayload;
 import com.malgn.domain.asset.repository.AssetSttSpeakerTimeRepository;
 import com.malgn.domain.asset.repository.AssetSttTextRepository;
 
@@ -27,6 +29,7 @@ public class SelectedSpeakerTextHandler implements CommandHandler<AudioTranscrib
     private final AssetSttTextRepository assetSttTextRepository;
     private final AssetSttSpeakerTimeRepository assetSttSpeakerTimeRepository;
 
+    @Transactional
     @Override
     public void handle(Event<AudioTranscribeCompletedEventPayload> event) {
 
@@ -48,6 +51,13 @@ public class SelectedSpeakerTextHandler implements CommandHandler<AudioTranscrib
             log.debug("updated asset stt speaker text. ({})", text);
 
         }
+
+        publisher.publish(
+            AssetSttJobEventType.SELECTED_SPEAKER_TEXT_COMPLETED,
+            SelectedSpeakerTextCompletedEventPayload.builder()
+                .id(payload.id())
+                .build()
+        );
 
     }
 

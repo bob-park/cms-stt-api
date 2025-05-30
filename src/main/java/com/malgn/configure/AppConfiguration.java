@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import com.malgn.configure.properties.AppProperties;
 import com.malgn.cqrs.event.handler.DelegatingCommandHandler;
 import com.malgn.domain.asset.event.handler.AudioTranscribeHandler;
+import com.malgn.domain.asset.event.handler.CompletedAssetSttJobHandler;
 import com.malgn.domain.asset.event.handler.ExtractAudioHandler;
 import com.malgn.domain.asset.event.handler.SelectedSpeakerTextHandler;
 import com.malgn.domain.asset.event.handler.SpeakerDiarizeHandler;
@@ -26,6 +27,7 @@ public class AppConfiguration {
     private final SpeakerDiarizeHandler speakerDiarizeHandler;
     private final AudioTranscribeHandler audioTranscribeHandler;
     private final SelectedSpeakerTextHandler selectedSpeakerTextHandler;
+    private final CompletedAssetSttJobHandler completedAssetSttJobHandler;
 
     @Bean
     public DelegatingCommandHandler delegatingCommandHandler() {
@@ -35,6 +37,7 @@ public class AppConfiguration {
         handler.add(speakerDiarizeHandler);
         handler.add(audioTranscribeHandler);
         handler.add(selectedSpeakerTextHandler);
+        handler.add(completedAssetSttJobHandler);
 
         return handler;
     }

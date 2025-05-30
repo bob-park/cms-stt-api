@@ -9,8 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
+import com.malgn.common.exception.ServiceRuntimeException;
 import com.malgn.cqrs.consumer.CommandConsumer;
 import com.malgn.cqrs.event.Event;
 import com.malgn.cqrs.event.EventPayload;
@@ -28,7 +28,6 @@ public class AssetSttJobCommandConsumer implements CommandConsumer {
 
     private final DelegatingCommandHandler handler;
 
-    @Transactional
     @KafkaListener(topics = Topic.ASSET_STT_JOB)
     @Override
     public void listen(String message, Acknowledgment ack) {
@@ -41,7 +40,12 @@ public class AssetSttJobCommandConsumer implements CommandConsumer {
             return;
         }
 
-        handler.handle(event);
+        try {
+            handler.handle(event);
+        } catch (Exception e) {
+            throw new ServiceRuntimeException(e);
+        }
+
 
         ack.acknowledge();
 
