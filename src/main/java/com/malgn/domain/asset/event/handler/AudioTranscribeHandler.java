@@ -20,7 +20,6 @@ import com.malgn.cqrs.outbox.publish.OutboxEventPublisher;
 import com.malgn.domain.asset.entity.AssetSttAudio;
 import com.malgn.domain.asset.entity.AssetSttAudioType;
 import com.malgn.domain.asset.entity.AssetSttJob;
-import com.malgn.domain.asset.entity.AssetSttSpeakerTime;
 import com.malgn.domain.asset.entity.AssetSttText;
 import com.malgn.domain.asset.event.AssetSttJobEventType;
 import com.malgn.domain.asset.event.AudioTranscribeCompletedEventPayload;
@@ -38,7 +37,7 @@ import com.malgn.domain.audio.model.ai.OpenAiAudioTranscriptionSegment;
 public class AudioTranscribeHandler implements CommandHandler<SpeakerDiarizeCompleteEventPayload> {
 
     private static final String DEFAULT_PROMPT = """
-        토론을 하고 있으며, 대화의 한문장씩 추출해줘
+        대화의 한문장씩 추출해줘
         """;
 
     private final AppProperties properties;
