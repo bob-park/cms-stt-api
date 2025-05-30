@@ -3,7 +3,6 @@ package com.malgn.domain.asset.event.handler;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -134,12 +133,6 @@ public class SpeakerDiarizeHandler implements CommandHandler<ExtractAudioComplet
                     .build();
 
             speaker.addTime(createdTime);
-
-            try {
-                Thread.sleep(Duration.ofMillis(10));
-            } catch (InterruptedException e) {
-                throw new ServiceRuntimeException(e);
-            }
 
             createdTime = assetSttSpeakerTimeRepository.save(createdTime);
 

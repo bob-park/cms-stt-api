@@ -96,12 +96,6 @@ public class AudioTranscribeHandler implements CommandHandler<SpeakerDiarizeComp
 
                 assetSttJob.addText(createdText);
 
-                try {
-                    Thread.sleep(Duration.ofMillis(10));
-                } catch (InterruptedException e) {
-                    throw new ServiceRuntimeException(e);
-                }
-
                 createdText = assetSttTextRepository.save(createdText);
 
                 log.debug("created asset stt text. ({})", createdText);
