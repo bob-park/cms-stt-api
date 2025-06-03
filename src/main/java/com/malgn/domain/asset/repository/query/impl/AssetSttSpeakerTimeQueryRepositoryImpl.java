@@ -28,8 +28,12 @@ public class AssetSttSpeakerTimeQueryRepositoryImpl implements AssetSttSpeakerTi
                 Expressions.asNumber(from).between(assetSttSpeakerTime.startTime, assetSttSpeakerTime.endTime)
                     .or(Expressions.asNumber(to).between(assetSttSpeakerTime.startTime, assetSttSpeakerTime.endTime)))
             .orderBy(
-                assetSttSpeakerTime.startTime.subtract(from).abs()
-                    .add(assetSttSpeakerTime.endTime.subtract(to).abs()).asc())
+                Expressions.numberTemplate(
+                        Long.class,
+                        "least({0}, {1})",
+                        assetSttSpeakerTime.startTime.subtract(from).abs(),
+                        assetSttSpeakerTime.endTime.subtract(to).abs())
+                    .asc())
             .limit(1)
             .offset(0)
             .fetchOne();
