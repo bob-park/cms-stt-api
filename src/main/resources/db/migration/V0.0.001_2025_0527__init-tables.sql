@@ -3,6 +3,7 @@ create table assets_stt_jobs
 (
     id                 bigint                        not null primary key,
     asset_id           bigint                        not null,
+    num_speakers       int                           not null,
     status             varchar(20) default 'WAITING' not null,
     source_path        varchar(1000)                 not null,
     is_deleted         bool        default false     not null,

@@ -9,6 +9,6 @@ import com.malgn.domain.audio.model.AudioSpeakerDiarizationResponse;
 
 public interface AudioSpeakerDiarizationService {
 
-    List<AudioSpeakerDiarizationResponse> diarize(MultipartFile audio) throws IOException;
+    List<AudioSpeakerDiarizationResponse> diarize(MultipartFile audio, int numSpeakers) throws IOException;
 
 }

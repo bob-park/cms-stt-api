@@ -30,6 +30,7 @@ import com.malgn.domain.asset.entity.AssetSttJob;
 import com.malgn.domain.asset.event.AssetSttJobCreatedEventPayload;
 import com.malgn.domain.asset.event.AssetSttJobEventType;
 import com.malgn.domain.asset.event.ExtractAudioCompletedEventPayload;
+import com.malgn.domain.asset.event.SpeakerDiarizeCompleteEventPayload;
 import com.malgn.domain.asset.repository.AssetSttAudioRepository;
 import com.malgn.domain.asset.repository.AssetSttJobRepository;
 import com.malgn.domain.transcode.runner.extract.ExtractAudioRequest;
@@ -38,7 +39,9 @@ import com.malgn.domain.transcode.runner.extract.ExtractAudioRunner;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class ExtractAudioHandler implements CommandHandler<AssetSttJobCreatedEventPayload> {
+public class SegmentsExtractAudioHandler implements CommandHandler<SpeakerDiarizeCompleteEventPayload> {
+
+    private static final int MAX_AUDIO_SECONDS = 30;
 
     private final AppProperties properties;
 
@@ -52,9 +55,9 @@ public class ExtractAudioHandler implements CommandHandler<AssetSttJobCreatedEve
 
     @Transactional
     @Override
-    public void handle(Event<AssetSttJobCreatedEventPayload> event) {
+    public void handle(Event<SpeakerDiarizeCompleteEventPayload> event) {
 
-        AssetSttJobCreatedEventPayload payload = event.getPayload();
+        SpeakerDiarizeCompleteEventPayload payload = event.getPayload();
 
         AssetSttJob assetSttJob =
             assetSttJobRepository.findById(payload.id())
@@ -65,19 +68,19 @@ public class ExtractAudioHandler implements CommandHandler<AssetSttJobCreatedEve
         // duration
         BigDecimal duration = getDuration(assetSttJob);
 
-        // 전체 audio 추출
-        extractAllAudio(assetSttJob, duration);
+        // audio 분할
+        segmentAudio(assetSttJob, duration);
 
         publisher.publish(
-            AssetSttJobEventType.EXTRACT_AUDIO_COMPLETED,
+            AssetSttJobEventType.SEGMENTS_EXTRACT_AUDIO_COMPLETED,
             ExtractAudioCompletedEventPayload.builder()
                 .id(assetSttJob.getId())
                 .build());
     }
 
     @Override
-    public boolean supports(Event<AssetSttJobCreatedEventPayload> event) {
-        return event.getType() == AssetSttJobEventType.ASSET_STT_JOB_CREATED;
+    public boolean supports(Event<SpeakerDiarizeCompleteEventPayload> event) {
+        return event.getType() == AssetSttJobEventType.SPEAKER_DIARIZE_COMPLETED;
     }
 
     private String getAbsoluteDirPath() {
@@ -111,41 +114,51 @@ public class ExtractAudioHandler implements CommandHandler<AssetSttJobCreatedEve
         return duration;
     }
 
-    private void extractAllAudio(AssetSttJob assetSttJob, BigDecimal duration) {
-
+    private void segmentAudio(AssetSttJob assetSttJob, BigDecimal duration) {
         String dir = getAbsoluteDirPath();
 
         String baseName = FilenameUtils.getBaseName(assetSttJob.getSourcePath());
         String source = dir + File.separatorChar + assetSttJob.getSourcePath();
 
-        // 전체
-        String relativeAllAudioPath =
-            FilenameUtils.getFullPath(assetSttJob.getSourcePath())
-                + baseName + File.separatorChar
-                + baseName + "." + ExtractAudioRunner.AUDIO_EXTENSION;
+        // audio file 분할
+        int totalFileCount = (int)(duration.doubleValue() / MAX_AUDIO_SECONDS);
 
-        runner.run(
-            ExtractAudioRequest.builder()
-                .source(source)
-                .dest(dir + File.separatorChar + relativeAllAudioPath)
-                .startSeconds(0)
-                .duration(duration.doubleValue())
-                .build());
+        if (duration.doubleValue() % MAX_AUDIO_SECONDS > 0) {
+            totalFileCount++;
+        }
 
-        AssetSttAudio createdAllAudio =
-            AssetSttAudio.builder()
-                .type(AssetSttAudioType.ALL)
-                .fileIndex(0L)
-                .startTime(BigDecimal.ZERO)
-                .endTime(duration)
-                .audioPath(relativeAllAudioPath)
-                .build();
+        for (int i = 0; i < totalFileCount; i++) {
+            String relativeDestPath =
+                FilenameUtils.getFullPath(assetSttJob.getSourcePath())
+                    + baseName + File.separatorChar
+                    + baseName + "_" + i + "." + ExtractAudioRunner.AUDIO_EXTENSION;
 
-        assetSttJob.addAudio(createdAllAudio);
+            double startTime = (double)MAX_AUDIO_SECONDS * i;
+            double sectionDuration = Math.min(duration.doubleValue() - startTime, MAX_AUDIO_SECONDS);
 
-        createdAllAudio = assetSttAudioRepository.save(createdAllAudio);
+            runner.run(
+                ExtractAudioRequest.builder()
+                    .source(source)
+                    .dest(dir + File.separatorChar + relativeDestPath)
+                    .startSeconds(startTime)
+                    .duration(sectionDuration)
+                    .build());
 
-        log.debug("created all audio. ({})", createdAllAudio);
+            AssetSttAudio createdAudio =
+                AssetSttAudio.builder()
+                    .type(AssetSttAudioType.SEGMENT)
+                    .fileIndex((long)i)
+                    .startTime(BigDecimal.valueOf(startTime))
+                    .endTime(BigDecimal.valueOf(startTime + sectionDuration))
+                    .audioPath(relativeDestPath)
+                    .build();
+
+            assetSttJob.addAudio(createdAudio);
+
+            createdAudio = assetSttAudioRepository.save(createdAudio);
+
+            log.debug("created audio. ({})", createdAudio);
+
+        }
     }
-
 }

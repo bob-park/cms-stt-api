@@ -13,6 +13,7 @@ import com.malgn.domain.audio.model.AudioSpeakerDiarizationResponse;
 public interface SpeakerDiarizeFeignClient {
 
     @PostMapping(path = "diarize", consumes = "multipart/form-data")
-    List<AudioSpeakerDiarizationResponse> diarize(@RequestPart("file") MultipartFile audio);
+    List<AudioSpeakerDiarizationResponse> diarize(@RequestPart("file") MultipartFile audio,
+        @RequestPart("numSpeakers") int numSpeakers);
 
 }

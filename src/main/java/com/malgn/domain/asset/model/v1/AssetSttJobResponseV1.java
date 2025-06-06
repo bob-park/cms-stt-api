@@ -11,6 +11,7 @@ import com.malgn.domain.asset.model.AssetSttJobResponse;
 @Builder
 public record AssetSttJobResponseV1(String id,
                                     Long assetId,
+                                    Integer numSpeakers,
                                     TaskStatus status,
                                     String sourcePath,
                                     Boolean isDeleted,
@@ -22,6 +23,7 @@ public record AssetSttJobResponseV1(String id,
         return AssetSttJobResponseV1.builder()
             .id(String.valueOf(entity.getId()))
             .assetId(entity.getAssetId())
+            .numSpeakers(entity.getNumSpeakers())
             .status(entity.getStatus())
             .sourcePath(entity.getSourcePath())
             .isDeleted(entity.getIsDeleted())

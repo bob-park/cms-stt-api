@@ -12,6 +12,7 @@ import com.malgn.cqrs.event.handler.DelegatingCommandHandler;
 import com.malgn.domain.asset.event.handler.AudioTranscribeHandler;
 import com.malgn.domain.asset.event.handler.CompletedAssetSttJobHandler;
 import com.malgn.domain.asset.event.handler.ExtractAudioHandler;
+import com.malgn.domain.asset.event.handler.SegmentsExtractAudioHandler;
 import com.malgn.domain.asset.event.handler.SelectedSpeakerTextHandler;
 import com.malgn.domain.asset.event.handler.SpeakerDiarizeHandler;
 
@@ -25,6 +26,7 @@ public class AppConfiguration {
 
     private final ExtractAudioHandler extractAudioHandler;
     private final SpeakerDiarizeHandler speakerDiarizeHandler;
+    private final SegmentsExtractAudioHandler segmentsExtractAudioHandler;
     private final AudioTranscribeHandler audioTranscribeHandler;
     private final SelectedSpeakerTextHandler selectedSpeakerTextHandler;
     private final CompletedAssetSttJobHandler completedAssetSttJobHandler;
@@ -35,6 +37,7 @@ public class AppConfiguration {
 
         handler.add(extractAudioHandler);
         handler.add(speakerDiarizeHandler);
+        handler.add(segmentsExtractAudioHandler);
         handler.add(audioTranscribeHandler);
         handler.add(selectedSpeakerTextHandler);
         handler.add(completedAssetSttJobHandler);

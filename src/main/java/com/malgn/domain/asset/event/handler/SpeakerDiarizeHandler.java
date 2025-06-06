@@ -86,7 +86,7 @@ public class SpeakerDiarizeHandler implements CommandHandler<ExtractAudioComplet
             CommonMultipartFile audioFile =
                 new CommonMultipartFile(IOUtils.toByteArray(new FileInputStream(absoluteAudioPath)));
 
-            result = speakerDiarizeClient.diarize(audioFile);
+            result = speakerDiarizeClient.diarize(audioFile, assetSttJob.getNumSpeakers());
 
         } catch (IOException e) {
             throw new ServiceRuntimeException(e);

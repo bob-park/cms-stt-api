@@ -41,6 +41,7 @@ public class AssetSttJobServiceV1 implements AssetSttJobService {
         AssetSttJob createdJob =
             AssetSttJob.builder()
                 .assetId(assetId)
+                .numSpeakers(v1Request.numSpeakers())
                 .sourcePath(v1Request.sourcePath())
                 .build();
 

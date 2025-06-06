@@ -41,6 +41,8 @@ public class AssetSttJob extends BaseTimeEntity<Long> {
 
     private Long assetId;
 
+    private Integer numSpeakers;
+
     @Enumerated(EnumType.STRING)
     private TaskStatus status;
 
@@ -62,13 +64,16 @@ public class AssetSttJob extends BaseTimeEntity<Long> {
     private List<AssetSttText> texts = new ArrayList<>();
 
     @Builder
-    private AssetSttJob(Long id, Long assetId, TaskStatus status, String sourcePath, Boolean isDeleted) {
+    private AssetSttJob(Long id, Long assetId, Integer numSpeakers, TaskStatus status, String sourcePath, Boolean isDeleted) {
+
 
         checkArgument(isNotEmpty(assetId), "assetId must be provided.");
+        checkArgument(isNotEmpty(numSpeakers), "numSpeakers must be provided.");
         checkArgument(StringUtils.isNotBlank(sourcePath), "assetId must be provided.");
 
         this.id = id;
         this.assetId = assetId;
+        this.numSpeakers = numSpeakers;
         this.status = defaultIfNull(status, TaskStatus.WAITING);
         this.sourcePath = sourcePath;
         this.isDeleted = defaultIfNull(isDeleted, false);

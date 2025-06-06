@@ -9,6 +9,8 @@ public interface AssetSttJobResponse extends CommonResponse {
 
     Long assetId();
 
+    Integer numSpeakers();
+
     TaskStatus status();
 
     String sourcePath();

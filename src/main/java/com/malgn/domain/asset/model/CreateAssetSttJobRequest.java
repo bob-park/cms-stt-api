@@ -4,4 +4,5 @@ public interface CreateAssetSttJobRequest {
 
     String sourcePath();
 
+    Integer numSpeakers();
 }

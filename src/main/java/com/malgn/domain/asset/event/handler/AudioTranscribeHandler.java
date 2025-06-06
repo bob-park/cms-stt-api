@@ -3,7 +3,6 @@ package com.malgn.domain.asset.event.handler;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -25,7 +24,7 @@ import com.malgn.domain.asset.entity.AssetSttJob;
 import com.malgn.domain.asset.entity.AssetSttText;
 import com.malgn.domain.asset.event.AssetSttJobEventType;
 import com.malgn.domain.asset.event.AudioTranscribeCompletedEventPayload;
-import com.malgn.domain.asset.event.SpeakerDiarizeCompleteEventPayload;
+import com.malgn.domain.asset.event.SegmentsExtractAudioCompletedEventPayload;
 import com.malgn.domain.asset.repository.AssetSttJobRepository;
 import com.malgn.domain.asset.repository.AssetSttSpeakerTimeRepository;
 import com.malgn.domain.asset.repository.AssetSttTextRepository;
@@ -36,10 +35,9 @@ import com.malgn.domain.audio.model.ai.OpenAiAudioTranscriptionSegment;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class AudioTranscribeHandler implements CommandHandler<SpeakerDiarizeCompleteEventPayload> {
+public class AudioTranscribeHandler implements CommandHandler<SegmentsExtractAudioCompletedEventPayload> {
 
     private static final String DEFAULT_PROMPT = """
-        대화의 한문장씩 추출해줘
         """;
 
     private final AppProperties properties;
@@ -54,9 +52,9 @@ public class AudioTranscribeHandler implements CommandHandler<SpeakerDiarizeComp
 
     @Transactional
     @Override
-    public void handle(Event<SpeakerDiarizeCompleteEventPayload> event) {
+    public void handle(Event<SegmentsExtractAudioCompletedEventPayload> event) {
 
-        SpeakerDiarizeCompleteEventPayload payload = event.getPayload();
+        SegmentsExtractAudioCompletedEventPayload payload = event.getPayload();
 
         AssetSttJob assetSttJob =
             assetSttJobRepository.findById(payload.id())
@@ -113,7 +111,7 @@ public class AudioTranscribeHandler implements CommandHandler<SpeakerDiarizeComp
     }
 
     @Override
-    public boolean supports(Event<SpeakerDiarizeCompleteEventPayload> event) {
-        return event.getType() == AssetSttJobEventType.SPEAKER_DIARIZE_COMPLETED;
+    public boolean supports(Event<SegmentsExtractAudioCompletedEventPayload> event) {
+        return event.getType() == AssetSttJobEventType.SEGMENTS_EXTRACT_AUDIO_COMPLETED;
     }
 }

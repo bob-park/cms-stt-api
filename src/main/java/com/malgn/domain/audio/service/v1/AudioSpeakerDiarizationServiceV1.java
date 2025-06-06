@@ -24,7 +24,7 @@ public class AudioSpeakerDiarizationServiceV1 implements AudioSpeakerDiarization
     private final SpeakerDiarizeFeignClient speakerDiarizeClient;
 
     @Override
-    public List<AudioSpeakerDiarizationResponse> diarize(MultipartFile audio) throws IOException {
-        return speakerDiarizeClient.diarize(new CommonMultipartFile(audio.getBytes()));
+    public List<AudioSpeakerDiarizationResponse> diarize(MultipartFile audio, int numSpeakers) throws IOException {
+        return speakerDiarizeClient.diarize(new CommonMultipartFile(audio.getBytes()), numSpeakers);
     }
 }
